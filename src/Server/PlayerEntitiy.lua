@@ -1,3 +1,6 @@
+--[[
+    Custom player entity to set player related data abd custom behaviors
+]]
 local CollectionService = game:GetService("CollectionService")
 
 local PlayerEntitiy = {}
