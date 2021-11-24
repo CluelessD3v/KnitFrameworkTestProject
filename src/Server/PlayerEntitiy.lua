@@ -8,7 +8,7 @@ PlayerEntitiy.__index = PlayerEntitiy
 
 function PlayerEntitiy.new(player)
     local self = setmetatable({}, PlayerEntitiy)
-    self.PlayerEntity = player
+    self.Instance = player
     
     CollectionService:AddTag(self.PlayerEntity, "Player")
     return self
