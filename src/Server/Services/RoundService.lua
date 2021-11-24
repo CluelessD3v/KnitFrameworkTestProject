@@ -33,10 +33,11 @@ function RoundService:StartIntermission()
 end
 
 function RoundService:WaitForPlayers()
-    repeat
-        print("Waiting for players")
+    local playerCount =  #Players:GetPlayers()
+    while playerCount < self.PlayersToStartRound do
         task.wait(1)
-    until  #Players:GetPlayers() >= self.PlayersToStartRound
+        print("Waiting for players")
+    end
 
     print("Enough Players, starting round")
 
