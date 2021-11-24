@@ -1,4 +1,5 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Debris = game:GetService("Debris")
 local Maid = require(ReplicatedStorage.Packages.maid)
 
 local KillBrick = {}
@@ -19,14 +20,12 @@ function KillBrick.new(instance)
     self.Instance.BrickColor = BrickColor.new("Really red")
     self.Instance.Parent = workspace
 
-    self.Maid:AddTask(function()
-        print("destroyed")
-    end)
+    Debris:AddItem(self.Instance, 5)
     return self
 end
 
 function KillBrick:Init()
-     self.Maid:AddTask(self.Instance.Touched:Connect(function(theTouchedPart)
+     self.Instance.Touched:Connect(function(theTouchedPart)
         local db: boolean = false
         
         if db == false then
@@ -42,11 +41,11 @@ function KillBrick:Init()
             task.wait(1)
             db = false
         end   
-    end))
+    end)
 end
 
 function KillBrick:Destroy()
-    self.Maid:Cleanup()
+    print("Destroyed")
 end
 
 return KillBrick
