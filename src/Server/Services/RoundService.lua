@@ -49,7 +49,7 @@ function RoundService:StartRoundTimer()
     self.IsInRound = true
 
     for time = self.RoundTime, 0, -1 do
-        print(time, "Until round ends")
+        --print(time, "Until round ends")
         task.wait(1)
 
         if time < 1 then
@@ -63,7 +63,7 @@ end
 
 function RoundService:SpawnKillBricks()
     while self.IsInRound do
-        task.wait(.6)
+        task.wait(.3)
 
         local xOffset = math.random(-100, 100)
         local zOffset = math.random(-100, 100)
@@ -85,7 +85,7 @@ end
 function RoundService:KnitStart()
 
     self.StartIntermissionSignal:Connect(function()
-        CleanUpArena()
+        CleanUpArena() --! Put this in it's own event to accurately clean the entire arena
         self:StartIntermission()
     end)
     
