@@ -23,7 +23,7 @@ function PlayerEntitiy:SetData()
     cash.Name = "Cash"
     cash.Parent = data
 
-    data.Parent = self.PlayerEntity
+    data.Parent = self.Instance
 
 end
 return PlayerEntitiy
