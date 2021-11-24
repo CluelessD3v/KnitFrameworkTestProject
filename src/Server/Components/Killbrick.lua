@@ -9,7 +9,7 @@ KillBrick.Tag = "KillBrick"
 
 function KillBrick.new(instance)
     local self = setmetatable({}, KillBrick)
-    print("Killbrick created")
+    --print("Killbrick created")
 
     self.Maid = Maid.new()
     self.Instance = instance
@@ -45,7 +45,7 @@ function KillBrick:Init()
 end
 
 function KillBrick:Destroy()
-    print("Destroyed")
+    --print("Destroyed")
 end
 
 return KillBrick

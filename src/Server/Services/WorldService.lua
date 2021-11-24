@@ -5,7 +5,6 @@ local Knit = require(game:GetService("ReplicatedStorage").Packages.Knit)
 local ServerScriptService = game:GetService("ServerScriptService")
 local Players = game:GetService("Players")
 local PlayerEntity = require(ServerScriptService.PlayerEntitiy)
-local CollectionService = game:GetService("CollectionService")
 
 
 local WorldService = Knit.CreateService {
@@ -13,10 +12,7 @@ local WorldService = Knit.CreateService {
     Client = {};
 }
 
-
 WorldService.PlayerEntities = {}
-WorldService.RoundTime = 10
-WorldService.PlayersToStartRound = 1
 
 function WorldService:AddPlayerEntity()
     Players.PlayerAdded:Connect(function(player)
@@ -36,33 +32,10 @@ function WorldService:GetPlayerEntities()
     return self.PlayerEntities
 end
 
-function WorldService:WaitForPlayers()
-    repeat
-        task.wait(1)
-        print("Waiting for players")
-    until  #Players:GetPlayers() >= self.PlayersToStartRound
-
-    print("Enough Players")
-end
-
-function WorldService:SpawnKillBricks()
-    for _ = 1, 10 do
-        task.wait(.3)
-        local xOffset = math.random(-100, 100)
-        local zOffset = math.random(-100, 100)
-        local newKillbrick = Instance.new("Part")
-        CollectionService:AddTag(newKillbrick, "KillBrick")
-        newKillbrick.Position = Vector3.new(xOffset, 100, zOffset)
-        newKillbrick.Parent = workspace
-    end
-end
-
 
 function WorldService:KnitStart()
     self:AddPlayerEntity()
     self:RemovePlayerEntity()
-    self:WaitForPlayers()
-    self:SpawnKillBricks()
 end
     
 
