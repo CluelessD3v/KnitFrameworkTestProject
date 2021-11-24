@@ -56,7 +56,7 @@ function RoundService:StartRoundTimer()
             self.IsInRound = false
             print("round over")
 
-            self.WaitForPlayersSignal:Fire()
+            self.StartIntermissionSignal:Fire()
         end
     end
 end
@@ -75,10 +75,17 @@ function RoundService:SpawnKillBricks()
     
 end
 
+local function CleanUpArena()
+    for _, killBrick in ipairs(CollectionService:GetTagged("KillBrick")) do
+        killBrick:Destroy()
+    end
+end
+
 
 function RoundService:KnitStart()
 
     self.StartIntermissionSignal:Connect(function()
+        CleanUpArena()
         self:StartIntermission()
     end)
     
