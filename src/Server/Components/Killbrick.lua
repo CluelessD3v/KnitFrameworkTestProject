@@ -25,7 +25,7 @@ function KillBrick.new(instance)
     return self
 end
 
-function KillBrick:Start()
+function KillBrick:Init()
      self.Maid:AddTask(self.Instance.Touched:Connect(function(theTouchedPart)
         local db: boolean = false
         

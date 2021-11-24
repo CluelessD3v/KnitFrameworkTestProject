@@ -48,8 +48,8 @@ end
 function WorldService:SpawnKillBricks()
     for _ = 1, 10 do
         task.wait(.3)
-        local xOffset = math.random(0, 100)
-        local zOffset = math.random(0, 100)
+        local xOffset = math.random(-100, 100)
+        local zOffset = math.random(-100, 100)
         local newKillbrick = Instance.new("Part")
         CollectionService:AddTag(newKillbrick, "KillBrick")
         newKillbrick.Position = Vector3.new(xOffset, 100, zOffset)
