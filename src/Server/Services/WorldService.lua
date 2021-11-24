@@ -16,6 +16,7 @@ local WorldService = Knit.CreateService {
 
 WorldService.PlayerEntities = {}
 WorldService.RoundTime = 10
+WorldService.PlayersToStartRound = 1
 
 function WorldService:AddPlayerEntity()
     Players.PlayerAdded:Connect(function(player)
@@ -35,7 +36,14 @@ function WorldService:GetPlayerEntities()
     return self.PlayerEntities
 end
 
+function WorldService:WaitForPlayers()
+    repeat
+        task.wait(1)
+        print("Waiting for players")
+    until  #Players:GetPlayers() >= self.PlayersToStartRound
 
+    print("Enough Players")
+end
 
 function WorldService:SpawnKillBricks()
     for _ = 1, 10 do
@@ -49,9 +57,12 @@ function WorldService:SpawnKillBricks()
     end
 end
 
+
 function WorldService:KnitStart()
     self:AddPlayerEntity()
     self:RemovePlayerEntity()
+    self:WaitForPlayers()
+    self:SpawnKillBricks()
 end
     
 
