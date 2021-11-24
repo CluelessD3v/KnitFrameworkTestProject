@@ -19,9 +19,9 @@ function PlayerEntitiy:SetData()
     local data: Folder = Instance.new("Folder")
     data.Name = "Data"
 
-    local Points: NumberValue = Instance.new("NumberValue")
-    Points.Name = "Points"
-    Points.Parent = data
+    local points: NumberValue = Instance.new("NumberValue")
+    points.Name = "Points"
+    points.Parent = data
 
     data.Parent = self.Instance
 
