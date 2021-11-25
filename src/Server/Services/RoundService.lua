@@ -10,9 +10,9 @@ local RoundService = Knit.CreateService {
 }
 
 RoundService.PlayersToStartRound = 1
-RoundService.RoundTime = 10
+RoundService.RoundTime = 5
 RoundService.IsInRound = false
-RoundService.IntermissionTime = 5
+RoundService.IntermissionTime = 3
 
 RoundService.StartRoundSignal = Signal.new()
 RoundService.WaitForPlayersSignal = Signal.new()
@@ -34,8 +34,7 @@ function RoundService:StartIntermission()
 end
 
 function RoundService:WaitForPlayers()
-    local playerCount =  #Players:GetPlayers()
-    while playerCount < self.PlayersToStartRound do
+    while #Players:GetPlayers() < self.PlayersToStartRound do
         task.wait(1)
         print("Waiting for players")
     end

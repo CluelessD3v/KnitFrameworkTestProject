@@ -27,22 +27,24 @@ end
 function PointsService:DecreasePoints(player)
     local humanoid: Humanoid = player.Character.Humanoid
 
-    humanoid.Died:Connect(function()
+    self.Maid:AddTask(humanoid.Died:Connect(function()
         player.Data.Points.Value -= self.PointsPenalty
         if player.Data.Points.Value < 1 then
             player.Data.Points.Value = 0
         end
 
-    end)
+    end))
 end
 
 function PointsService:KnitStart()
 
+    -- Hook to the Round service Start round signal to
     RoundService.StartRoundSignal:Connect(function() 
         local startTime = time()       
         for _, player in ipairs(Players:GetPlayers()) do
             self:DecreasePoints(player)
         end
+
 
         self.Maid:AddTask(RunService.Heartbeat:Connect(function()
             if time() - startTime > self.RewardInterval then
@@ -54,6 +56,9 @@ function PointsService:KnitStart()
                 startTime = time()
             end
         end))
+
+        print(self.Maid)
+
         
     end)
 
