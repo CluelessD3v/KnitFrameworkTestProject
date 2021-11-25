@@ -1,6 +1,9 @@
 local Knit = require(game:GetService("ReplicatedStorage").Packages.Knit)
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Maid = require(ReplicatedStorage.Packages.maid)
+
 
 local RoundService 
 
@@ -9,9 +12,10 @@ local PointsService = Knit.CreateService {
     Name = "PointsService";
     Client = {};
 }
+PointsService.Maid = Maid.new() 
 
 PointsService.PointsReward = 10
-PointsService.RewardInterval = 5
+PointsService.RewardInterval = 1
 PointsService.PointsPenalty = 20
 
 
@@ -40,7 +44,7 @@ function PointsService:KnitStart()
             self:DecreasePoints(player)
         end
 
-        RunService.Heartbeat:Connect(function()
+        self.Maid:AddTask(RunService.Heartbeat:Connect(function()
             if time() - startTime > self.RewardInterval then
 
                 for _, player in ipairs(Players:GetPlayers()) do
@@ -49,11 +53,15 @@ function PointsService:KnitStart()
 
                 startTime = time()
             end
-        end)
+        end))
         
     end)
-end
 
+
+    RoundService.CleanUpArenaSignal:Connect(function()
+        self.Maid:Cleanup()
+    end)
+end
 
 function PointsService:KnitInit()
     RoundService = Knit.GetService("RoundService") 
