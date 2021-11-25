@@ -18,6 +18,7 @@ RoundService.StartRoundSignal = Signal.new()
 RoundService.WaitForPlayersSignal = Signal.new()
 RoundService.SpawnKillBricksSignal = Signal.new()
 RoundService.StartIntermissionSignal = Signal.new()
+RoundService.CleanUpArenaSignal = Signal.new()
 
 
 function RoundService:StartIntermission()
@@ -55,8 +56,6 @@ function RoundService:StartRoundTimer()
         if time < 1 then
             self.IsInRound = false
             print("round over")
-
-            self.StartIntermissionSignal:Fire()
         end
     end
 end
@@ -72,20 +71,22 @@ function RoundService:SpawnKillBricks()
         newKillbrick.Position = Vector3.new(xOffset, 100, zOffset)
         newKillbrick.Parent = workspace
     end
-    
+
+    self.CleanUpArenaSignal:Fire()
 end
 
-local function CleanUpArena()
+function RoundService:CleanUpArena()
     for _, killBrick in ipairs(CollectionService:GetTagged("KillBrick")) do
         killBrick:Destroy()
     end
+
+    self.StartIntermissionSignal:Fire()
 end
 
 
 function RoundService:KnitStart()
 
     self.StartIntermissionSignal:Connect(function()
-        CleanUpArena() --! Put this in it's own event to accurately clean the entire arena
         self:StartIntermission()
     end)
     
@@ -100,6 +101,10 @@ function RoundService:KnitStart()
 
     self.SpawnKillBricksSignal:Connect(function()
         self:SpawnKillBricks()
+    end)
+
+    self.CleanUpArenaSignal:Connect(function()
+        self:CleanUpArena()
     end)
 
     self.StartIntermissionSignal:Fire()
