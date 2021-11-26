@@ -10,9 +10,9 @@ local RoundService = Knit.CreateService {
 }
 
 RoundService.PlayersToStartRound = 1
-RoundService.RoundTime = 5
+RoundService.RoundTime = 10
 RoundService.IsInRound = false
-RoundService.IntermissionTime = 3
+RoundService.IntermissionTime = 1
 
 RoundService.StartRoundSignal = Signal.new()
 RoundService.WaitForPlayersSignal = Signal.new()
@@ -61,7 +61,7 @@ end
 
 function RoundService:SpawnKillBricks()
     while self.IsInRound do
-        task.wait(.3)
+        task.wait(.1)
 
         local xOffset = math.random(-100, 100)
         local zOffset = math.random(-100, 100)

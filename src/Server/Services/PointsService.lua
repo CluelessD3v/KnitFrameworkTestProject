@@ -16,7 +16,7 @@ PointsService.Maid = Maid.new()
 
 PointsService.PointsReward = 10
 PointsService.RewardInterval = 1
-PointsService.PointsPenalty = 20
+PointsService.PointsPenalty = 50
 
 
 function PointsService:IncreasePoints(player)
@@ -31,6 +31,7 @@ function PointsService:DecreasePoints(player)
         player.Data.Points.Value -= self.PointsPenalty
         if player.Data.Points.Value < 1 then
             player.Data.Points.Value = 0
+            print(player,"died")
         end
 
     end))
