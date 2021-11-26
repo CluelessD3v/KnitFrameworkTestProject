@@ -6,107 +6,106 @@ local Signal  = require(ReplicatedStorage.Packages.Signal)
 
 local RoundService = Knit.CreateService {
     Name = "RoundService";
-    Client = {};
+    Client = {
+        StartMatchSignal = Signal.new(),
+        WaitForPlayersSignal = Signal.new(),
+        StartIntermissionSignal = Signal.new(),
+        StopMatchSignal = Signal.new(),
+
+    };
 }
 
 RoundService.PlayersToStartRound = 1
-RoundService.RoundTime = 10
+RoundService.RoundTime = 5
 RoundService.IsInRound = false
-RoundService.IntermissionTime = 1
+RoundService.IntermissionTime = 5
 
-RoundService.StartRoundSignal = Signal.new()
-RoundService.WaitForPlayersSignal = Signal.new()
-RoundService.SpawnKillBricksSignal = Signal.new()
-RoundService.StartIntermissionSignal = Signal.new()
-RoundService.CleanUpArenaSignal = Signal.new()
-
-
-function RoundService:StartIntermission()
-    for time = self.IntermissionTime, 0, -1 do
-        print("IntermissionTime:", time)
+function RoundService:OnIntermission()
+    for curretTime = self.IntermissionTime, 0, -1 do
+        print("IntermissionTime:", curretTime)
         task.wait(1)
 
-        if time < 1 then
+        if curretTime < 1 then
             print("Intermission over, waiting for players")
-            self.WaitForPlayersSignal:Fire()
+            self.Client.WaitForPlayersSignal:Fire()
         end
     end
 end
 
-function RoundService:WaitForPlayers()
+function RoundService:OnWaitForPlayers()
     while #Players:GetPlayers() < self.PlayersToStartRound do
         task.wait(1)
         print("Waiting for players")
     end
 
     print("Enough Players, starting round")
-
-    self.StartRoundSignal:Fire()
-    self.SpawnKillBricksSignal:Fire()
+    self.Client.StartMatchSignal:Fire()
 end
 
-function RoundService:StartRoundTimer()
-    self.IsInRound = true
-
+function RoundService:StartMatchTimer()
     for time = self.RoundTime, 0, -1 do
-        --print(time, "Until round ends")
+        print(time, "Seconds until round ends")
         task.wait(1)
 
         if time < 1 then
-            self.IsInRound = false
             print("round over")
+            self.Client.StopMatchSignal:Fire()
         end
     end
 end
 
 function RoundService:SpawnKillBricks()
-    while self.IsInRound do
-        task.wait(.1)
-
+    repeat
         local xOffset = math.random(-100, 100)
         local zOffset = math.random(-100, 100)
         local newKillbrick = Instance.new("Part")
         CollectionService:AddTag(newKillbrick, "KillBrick")
         newKillbrick.Position = Vector3.new(xOffset, 100, zOffset)
         newKillbrick.Parent = workspace
-    end
+        task.wait(.1)
+    until self.IsInRound == false
 
-    self.CleanUpArenaSignal:Fire()
 end
 
 function RoundService:CleanUpArena()
+    print("cleaning")
     for _, killBrick in ipairs(CollectionService:GetTagged("KillBrick")) do
         killBrick:Destroy()
     end
 
-    self.StartIntermissionSignal:Fire()
+    self.Client.StartIntermissionSignal:Fire()
+end
+
+function RoundService:_SetRoundStatus(status: boolean)
+    self.IsInRound = status
 end
 
 
 function RoundService:KnitStart()
-
-    self.StartIntermissionSignal:Connect(function()
-        self:StartIntermission()
+    self.Client.StartIntermissionSignal:Connect(function() 
+        self:OnIntermission()
     end)
+
+    self.Client.WaitForPlayersSignal:Connect(function() 
+        self:OnWaitForPlayers()
+    end)
+
+    self.Client.StartMatchSignal:Connect(function() 
+        self:StartMatchTimer()
+    end)
+
     
-    self.WaitForPlayersSignal:Connect(function()
-        self:WaitForPlayers()
-    end)
-
-    self.StartRoundSignal:Connect(function()
-        self:StartRoundTimer()
-    end)
-
-
-    self.SpawnKillBricksSignal:Connect(function()
+    self.Client.StartMatchSignal:Connect(function()
+        self:_SetRoundStatus(true) 
         self:SpawnKillBricks()
     end)
 
-    self.CleanUpArenaSignal:Connect(function()
+    self.Client.StopMatchSignal:Connect(function() 
+        self:_SetRoundStatus(false) 
         self:CleanUpArena()
     end)
 
-    self.StartIntermissionSignal:Fire()
+    self.Client.StartIntermissionSignal:Fire()
 
 end
 
