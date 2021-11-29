@@ -6,7 +6,9 @@ local Signal  = require(ReplicatedStorage.Packages.Signal)
 
 local RoundService = Knit.CreateService {
     Name = "RoundService";
-    Client = {};
+    Client = {
+        ChangeStatus = Knit.CreateSignal()
+    };
 }
 
 RoundService.PlayersToStartRound = 1
@@ -32,8 +34,10 @@ function RoundService:_OnIntermission()
         print("IntermissionTime:", curretTime)
         task.wait(1)
 
+        self.Client.ChangeStatus:FireAll("Intermission time: "..tostring(curretTime))
+
         if curretTime < 1 then
-            print("Intermission over, waiting for players")
+            self.Client.ChangeStatus:FireAll("Intermission over, waiting for players...")
             self.ChangeState:Fire(self.States.WaitingForPlayers)
         end
     end
@@ -42,20 +46,21 @@ end
 function RoundService:_OnWaitForPlayers()
         while #Players:GetPlayers() < self.PlayersToStartRound do
             task.wait(1)
-            print("Waiting for players")
+            self.Client.ChangeStatus:FireAll("Waiting for enough players to join...")
         end
+        self.Client.ChangeStatus:FireAll("Starting round!")
 
-        print("Enough Players, starting round")
+        task.wait(3)
         self.ChangeState:Fire(self.States.InMatch)
 end
 
 function RoundService:_StartMatchTimer()
-    for time = self.RoundTime, 0, -1 do
-        print(time, "Seconds until round ends")
+    for currentTime = self.RoundTime, 0, -1 do
+        self.Client.ChangeStatus:FireAll(tostring(currentTime).." Seconds until round ends")
         task.wait(1)
-
-        if time < 1 then
-            print("round over")
+        
+        if currentTime < 1 then
+            self.Client.ChangeStatus:FireAll("RoundOver")
             self.ChangeState:Fire(self.States.AfterMatch)
         end
     end
