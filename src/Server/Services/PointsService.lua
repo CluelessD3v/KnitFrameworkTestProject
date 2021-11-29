@@ -38,36 +38,39 @@ function PointsService:DecreasePoints(player)
     end))
 end
 
+function PointsService:_OnStartRoundSignalInit()
+    RoundService.Client.StartMatchSignal:Connect(function()
+    
+        local startTime = time()
+        for _, player in ipairs(Players:GetPlayers()) do
+            self:DecreasePoints(player)
+        end
+
+
+        self.Maid:AddTask(RunService.Heartbeat:Connect(function()
+            if time() - startTime > self.RewardInterval then
+
+                for _, player in ipairs(Players:GetPlayers()) do
+                    self:IncreasePoints(player)
+                end
+
+                startTime = time()
+            end
+        end))
+    end)
+end
+
+
+function PointsService:_OnCleanUpArenaSignalDeInit()
+    RoundService.Client.StopMatchSignal:Connect(function()
+        self.Maid:Cleanup()
+    end)
+end
+
 function PointsService:KnitStart()
 
-    -- Hook to the Round service Start round signal to
-    -- RoundService.StartRoundSignal:Connect(function() 
-    --     local startTime = time()
-    --     for _, player in ipairs(Players:GetPlayers()) do
-    --         self:DecreasePoints(player)
-    --     end
-
-
-    --     self.Maid:AddTask(RunService.Heartbeat:Connect(function()
-    --         if time() - startTime > self.RewardInterval then
-
-    --             for _, player in ipairs(Players:GetPlayers()) do
-    --                 self:IncreasePoints(player)
-    --             end
-
-    --             startTime = time()
-    --         end
-    --     end))
-
-    --     print(self.Maid)
-
-        
-    -- end)
-
-
-    -- RoundService.CleanUpArenaSignal:Connect(function()
-    --     self.Maid:Cleanup()
-    -- end)
+    self:_OnStartRoundSignalInit()
+    self:_OnCleanUpArenaSignalDeInit()
 end
 
 function PointsService:KnitInit()
