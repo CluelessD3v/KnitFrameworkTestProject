@@ -39,7 +39,7 @@ function PointsService:DecreasePoints(player)
 end
 
 function PointsService:_OnStartRoundSignalInit()
-    RoundService.Client.StartMatchSignal:Connect(function()
+    RoundService.StartMatchSignal:Connect(function()
     
         local startTime = time()
         for _, player in ipairs(Players:GetPlayers()) do
@@ -62,13 +62,19 @@ end
 
 
 function PointsService:_OnCleanUpArenaSignalDeInit()
-    RoundService.Client.StopMatchSignal:Connect(function()
+    RoundService.StopMatchSignal:Connect(function()
         self.Maid:Cleanup()
     end)
 end
 
-function PointsService:KnitStart()
 
+function PointsService.Client:ClientGetPoints(playerToLookUp)
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player == playerToLookUp then return player.Data.Points end
+    end
+end
+
+function PointsService:KnitStart()
     self:_OnStartRoundSignalInit()
     self:_OnCleanUpArenaSignalDeInit()
 end

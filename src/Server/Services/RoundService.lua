@@ -6,19 +6,19 @@ local Signal  = require(ReplicatedStorage.Packages.Signal)
 
 local RoundService = Knit.CreateService {
     Name = "RoundService";
-    Client = {
-        StartMatchSignal = Signal.new(),
-        WaitForPlayersSignal = Signal.new(),
-        StartIntermissionSignal = Signal.new(),
-        StopMatchSignal = Signal.new(),
-
-    };
+    Client = {};
 }
 
 RoundService.PlayersToStartRound = 1
 RoundService.RoundTime = 5
 RoundService.IsInRound = false
 RoundService.IntermissionTime = 5
+
+RoundService.StartMatchSignal = Signal.new()
+RoundService.WaitForPlayersSignal = Signal.new()
+RoundService.StartIntermissionSignal = Signal.new()
+RoundService.StopMatchSignal = Signal.new()
+
 
 function RoundService:OnIntermission()
     for curretTime = self.IntermissionTime, 0, -1 do
@@ -27,7 +27,7 @@ function RoundService:OnIntermission()
 
         if curretTime < 1 then
             print("Intermission over, waiting for players")
-            self.Client.WaitForPlayersSignal:Fire()
+            self.WaitForPlayersSignal:Fire()
         end
     end
 end
@@ -39,7 +39,7 @@ function RoundService:OnWaitForPlayers()
     end
 
     print("Enough Players, starting round")
-    self.Client.StartMatchSignal:Fire()
+    self.StartMatchSignal:Fire()
 end
 
 function RoundService:StartMatchTimer()
@@ -49,7 +49,7 @@ function RoundService:StartMatchTimer()
 
         if time < 1 then
             print("round over")
-            self.Client.StopMatchSignal:Fire()
+            self.StopMatchSignal:Fire()
         end
     end
 end
@@ -73,7 +73,7 @@ function RoundService:CleanUpArena()
         killBrick:Destroy()
     end
 
-    self.Client.StartIntermissionSignal:Fire()
+    self.StartIntermissionSignal:Fire()
 end
 
 function RoundService:_SetRoundStatus(status: boolean)
@@ -82,30 +82,30 @@ end
 
 
 function RoundService:KnitStart()
-    self.Client.StartIntermissionSignal:Connect(function() 
+    self.StartIntermissionSignal:Connect(function() 
         self:OnIntermission()
     end)
 
-    self.Client.WaitForPlayersSignal:Connect(function() 
+    self.WaitForPlayersSignal:Connect(function() 
         self:OnWaitForPlayers()
     end)
 
-    self.Client.StartMatchSignal:Connect(function() 
+    self.StartMatchSignal:Connect(function() 
         self:StartMatchTimer()
     end)
 
     
-    self.Client.StartMatchSignal:Connect(function()
+    self.StartMatchSignal:Connect(function()
         self:_SetRoundStatus(true) 
         self:SpawnKillBricks()
     end)
 
-    self.Client.StopMatchSignal:Connect(function() 
+    self.StopMatchSignal:Connect(function() 
         self:_SetRoundStatus(false) 
         self:CleanUpArena()
     end)
 
-    self.Client.StartIntermissionSignal:Fire()
+    self.StartIntermissionSignal:Fire()
 
 end
 
