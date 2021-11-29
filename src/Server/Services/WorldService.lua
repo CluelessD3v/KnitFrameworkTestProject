@@ -1,7 +1,7 @@
 --[[
     This service is the class responsible for core game functionality
 ]]
-local Knit = require(game:GetService("ReplicatedStorage").Packages.Knit)
+local Knit = require(game:GetService("ReplicatedStorage").Packages.knit)
 local ServerScriptService = game:GetService("ServerScriptService")
 local Players = game:GetService("Players")
 local PlayerEntity = require(ServerScriptService.PlayerEntitiy)

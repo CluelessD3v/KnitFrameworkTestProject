@@ -36,6 +36,7 @@ type Service = {
 	Name: string,
 	Client: ServiceClient,
 	KnitComm: any,
+	_knit_is_service: boolean,
 	[any]: any,
 }
 
@@ -54,31 +55,18 @@ type ServiceClient = {
 --[=[
 	@class KnitServer
 	@server
-	Knit server-side lets developers create services and expose methods and signals
-	to the clients.
-
-	```lua
-	local Knit = require(somewhere.Knit)
-
-	-- Load service modules within some folder:
-	Knit.AddServices(somewhere.Services)
-
-	-- Start Knit:
-	Knit.Start():andThen(function()
-		print("Knit started")
-	end):catch(warn)
-	```
 ]=]
 local KnitServer = {}
 
 --[=[
+	@prop Services {[string]: Service}
+	@within KnitServer
+]=]
+KnitServer.Services = {} :: {[string]: Service}
+
+--[=[
 	@prop Util Folder
 	@within KnitServer
-	@readonly
-	References the Util folder. Should only be accessed when using Knit as
-	a standalone module. If using Knit from Wally, modules should just be
-	pulled in via Wally instead of relying on Knit's Util folder, as this
-	folder only contains what is necessary for Knit to run in Wally mode.
 ]=]
 KnitServer.Util = script.Parent.Parent
 
@@ -91,10 +79,11 @@ local knitRepServiceFolder = Instance.new("Folder")
 knitRepServiceFolder.Name = "Services"
 
 local Promise = require(KnitServer.Util.Promise)
+local Loader = require(KnitServer.Util.Loader)
+local TableUtil = require(KnitServer.Util.TableUtil)
 local Comm = require(KnitServer.Util.Comm)
 local ServerComm = Comm.ServerComm
 
-local services: {[string]: Service} = {}
 local started = false
 local startedComplete = false
 local onStartedComplete = Instance.new("BindableEvent")
@@ -109,7 +98,7 @@ end
 
 
 local function DoesServiceExist(serviceName: string): boolean
-	local service: Service? = services[serviceName]
+	local service: Service? = KnitServer.Services[serviceName]
 	return service ~= nil
 end
 
@@ -118,40 +107,16 @@ end
 	@param serviceDefinition ServiceDef
 	@return Service
 	Constructs a new service.
-
-	:::caution
-	Services must be created _before_ calling `Knit.Start()`.
-	:::
-	```lua
-	-- Create a service
-	local MyService = Knit.CreateService {
-		Name = "MyService";
-		Client = {};
-	}
-
-	-- Expose a ToAllCaps remote function to the clients
-	function MyService.Client:ToAllCaps(player, msg)
-		return msg:upper()
-	end
-
-	-- Knit will call KnitStart after all services have been initialized
-	function MyService:KnitStart()
-		print("MyService started")
-	end
-
-	-- Knit will call KnitInit when Knit is first started
-	function MyService:KnitInit()
-		print("MyService initialize")
-	end
-	```
 ]=]
 function KnitServer.CreateService(serviceDef: ServiceDef): Service
 	assert(type(serviceDef) == "table", "Service must be a table; got " .. type(serviceDef))
 	assert(type(serviceDef.Name) == "string", "Service.Name must be a string; got " .. type(serviceDef.Name))
 	assert(#serviceDef.Name > 0, "Service.Name must be a non-empty string")
 	assert(not DoesServiceExist(serviceDef.Name), "Service \"" .. serviceDef.Name .. "\" already exists")
-	local service = serviceDef
-	service.KnitComm = ServerComm.new(CreateRepFolder(serviceDef.Name))
+	local service: Service = TableUtil.Assign(serviceDef, {
+		_knit_is_service = true;
+		KnitComm = ServerComm.new(CreateRepFolder(serviceDef.Name));
+	})
 	if type(service.Client) ~= "table" then
 		service.Client = {Server = service}
 	else
@@ -164,53 +129,43 @@ function KnitServer.CreateService(serviceDef: ServiceDef): Service
 			end
 		end
 	end
-	services[service.Name] = service
+	KnitServer.Services[service.Name] = service
 	return service
 end
 
 
 --[=[
 	@param parent Instance
-	@return services: {Service}
+	@return {any}
 	Requires all the modules that are children of the given parent. This is an easy
 	way to quickly load all services that might be in a folder.
 	```lua
 	Knit.AddServices(somewhere.Services)
 	```
 ]=]
-function KnitServer.AddServices(parent: Instance): {Service}
-	local addedServices = {}
-	for _,v in ipairs(parent:GetChildren()) do
-		if not v:IsA("ModuleScript") then continue end
-		table.insert(addedServices, require(v))
-	end
-	return addedServices
+function KnitServer.AddServices(parent: Instance): {any}
+	return Loader.LoadChildren(parent)
 end
 
 
 --[=[
 	@param parent Instance
-	@return services: {Service}
+	@return {any}
 	Requires all the modules that are descendants of the given parent.
 ]=]
-function KnitServer.AddServicesDeep(parent: Instance): {Service}
-	local addedServices = {}
-	for _,v in ipairs(parent:GetDescendants()) do
-		if not v:IsA("ModuleScript") then continue end
-		table.insert(addedServices, require(v))
-	end
-	return addedServices
+function KnitServer.AddServicesDeep(parent: Instance): {any}
+	return Loader.LoadDescendants(parent)
 end
 
 
 --[=[
 	@param serviceName string
-	@return Service
-	Gets the service by name. Throws an error if the service is not found.
+	@return Service?
+	Gets the service by name, or `nil` if it is not found.
 ]=]
 function KnitServer.GetService(serviceName: string): Service
 	assert(type(serviceName) == "string", "ServiceName must be a string; got " .. type(serviceName))
-	return assert(services[serviceName], "Could not find service \"" .. serviceName .. "\"") :: Service
+	return assert(KnitServer.Services[serviceName], "Could not find service \"" .. serviceName .. "\"") :: Service
 end
 
 
@@ -260,6 +215,8 @@ function KnitServer.Start()
 	end
 
 	started = true
+
+	local services = KnitServer.Services
 
 	return Promise.new(function(resolve)
 
