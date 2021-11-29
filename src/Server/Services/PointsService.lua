@@ -13,13 +13,14 @@ local PointsService = Knit.CreateService {
     Name = "PointsService";
     Client = {};
 }
+
 PointsService.Maid = Maid.new() 
 
 PointsService.PointsReward = 10
 PointsService.RewardInterval = 1
 PointsService.PointsPenalty = 50
 
-
+--* <---- PUBLIC METHODS ---->
 function PointsService:IncreasePoints(player)
     player.Data.Points.Value += self.PointsReward
 
@@ -38,6 +39,14 @@ function PointsService:DecreasePoints(player)
     end))
 end
 
+function PointsService.Client:ClientGetPoints(playerToLookUp)
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player == playerToLookUp then return player.Data.Points end
+    end
+end
+
+
+--* <---- PRIVATE METHODS ---->
 function PointsService:_OnMatchStartedInit()
     
     local startTime = time()
@@ -63,12 +72,6 @@ function PointsService:_OnMatchEndedDeInit()
     self.Maid:Cleanup()
 end
 
-
-function PointsService.Client:ClientGetPoints(playerToLookUp)
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player == playerToLookUp then return player.Data.Points end
-    end
-end
 
 function PointsService:KnitStart()
     RoundService.ChangeState:Connect(function(state)
