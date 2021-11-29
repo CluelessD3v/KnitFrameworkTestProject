@@ -11,50 +11,57 @@ local RoundService = Knit.CreateService {
 
 RoundService.PlayersToStartRound = 1
 RoundService.RoundTime = 5
-RoundService.IsInRound = false
 RoundService.IntermissionTime = 5
+RoundService.IsInMatch = false
+RoundService.States = {
+    Intermission = "Intermission",
+    InMatch = "InMatch",
+    AfterMatch = "AfterMatch",
+    WaitingForPlayers = "WaitingForPlayers", 
+}
 
-RoundService.StartMatchSignal = Signal.new()
-RoundService.WaitForPlayersSignal = Signal.new()
-RoundService.StartIntermissionSignal = Signal.new()
-RoundService.StopMatchSignal = Signal.new()
+RoundService.ChangeState = Signal.new()
 
 
-function RoundService:OnIntermission()
+
+
+
+function RoundService:_OnIntermission()
+
     for curretTime = self.IntermissionTime, 0, -1 do
         print("IntermissionTime:", curretTime)
         task.wait(1)
 
         if curretTime < 1 then
             print("Intermission over, waiting for players")
-            self.WaitForPlayersSignal:Fire()
+            self.ChangeState:Fire(self.States.WaitingForPlayers)
         end
     end
 end
 
-function RoundService:OnWaitForPlayers()
-    while #Players:GetPlayers() < self.PlayersToStartRound do
-        task.wait(1)
-        print("Waiting for players")
-    end
+function RoundService:_OnWaitForPlayers()
+        while #Players:GetPlayers() < self.PlayersToStartRound do
+            task.wait(1)
+            print("Waiting for players")
+        end
 
-    print("Enough Players, starting round")
-    self.StartMatchSignal:Fire()
+        print("Enough Players, starting round")
+        self.ChangeState:Fire(self.States.InMatch)
 end
 
-function RoundService:StartMatchTimer()
+function RoundService:_StartMatchTimer()
     for time = self.RoundTime, 0, -1 do
         print(time, "Seconds until round ends")
         task.wait(1)
 
         if time < 1 then
             print("round over")
-            self.StopMatchSignal:Fire()
+            self.ChangeState:Fire(self.States.AfterMatch)
         end
     end
 end
 
-function RoundService:SpawnKillBricks()
+function RoundService:_SpawnKillBricks()
     repeat
         local xOffset = math.random(-100, 100)
         local zOffset = math.random(-100, 100)
@@ -63,49 +70,45 @@ function RoundService:SpawnKillBricks()
         newKillbrick.Position = Vector3.new(xOffset, 100, zOffset)
         newKillbrick.Parent = workspace
         task.wait(.1)
-    until self.IsInRound == false
-
+    until self.IsInMatch == false
 end
 
-function RoundService:CleanUpArena()
+function RoundService:_CleanUpArena()
     print("cleaning")
     for _, killBrick in ipairs(CollectionService:GetTagged("KillBrick")) do
         killBrick:Destroy()
     end
 
-    self.StartIntermissionSignal:Fire()
+    self.ChangeState:Fire(self.States.Intermission)
 end
-
-function RoundService:_SetRoundStatus(status: boolean)
-    self.IsInRound = status
-end
-
 
 function RoundService:KnitStart()
-    self.StartIntermissionSignal:Connect(function() 
-        self:OnIntermission()
+    self.ChangeState:Connect(function(state)
+        if state == self.States.Intermission then
+            self:_OnIntermission()
+
+        elseif state == self.States.WaitingForPlayers then
+            self:_OnWaitForPlayers()
+
+        elseif state == self.States.InMatch then
+            self.IsInMatch = true
+            self:_StartMatchTimer()
+
+        elseif state == self.States.AfterMatch then
+            self.IsInMatch = false
+            self:_CleanUpArena()
+        end
     end)
 
-    self.WaitForPlayersSignal:Connect(function() 
-        self:OnWaitForPlayers()
+    self.ChangeState:Connect(function(state)
+        if state == self.States.InMatch then
+            self:_SpawnKillBricks()
+        end
     end)
 
-    self.StartMatchSignal:Connect(function() 
-        self:StartMatchTimer()
-    end)
 
-    
-    self.StartMatchSignal:Connect(function()
-        self:_SetRoundStatus(true) 
-        self:SpawnKillBricks()
-    end)
 
-    self.StopMatchSignal:Connect(function() 
-        self:_SetRoundStatus(false) 
-        self:CleanUpArena()
-    end)
-
-    self.StartIntermissionSignal:Fire()
+    self.ChangeState:Fire(self.States.Intermission)
 
 end
 
