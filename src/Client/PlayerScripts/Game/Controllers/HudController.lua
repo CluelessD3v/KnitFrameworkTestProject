@@ -2,7 +2,6 @@ local Knit = require(game:GetService("ReplicatedStorage").Packages.knit)
 local HudController = Knit.CreateController { Name = "HudController" }
 local RoundService
 
-
 function HudController:KnitStart()
     local Player: Player = Knit.Player
     local Data = Player:WaitForChild("Data", 10)
@@ -13,6 +12,10 @@ function HudController:KnitStart()
 
     RoundService.ChangeStatus:Connect(function(status)
         HUD.StatusFrame.Status.Text = status
+    end)
+
+    RoundService.PlayerCountChanged:Connect(function(playerCount)
+        HUD.PlayerCountFrame.PlayerCount.Text = playerCount
     end)
 
 end

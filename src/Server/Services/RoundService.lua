@@ -7,18 +7,20 @@ local Signal  = require(ReplicatedStorage.Packages.Signal)
 local RoundService = Knit.CreateService {
     Name = "RoundService";
     Client = {
-        ChangeStatus = Knit.CreateSignal()
+        ChangeStatus = Knit.CreateSignal(),
+        PlayerCountChanged = Knit.CreateSignal()
     };
 }
 
 
 --* CONFIG
-RoundService.PlayersToStartRound = 1
+RoundService.PlayersToStartRound = 2
 RoundService.RoundTime = 5
 RoundService.IntermissionTime = 5
 RoundService.IsInMatch = false
 
-RoundService.CurrentTime = 0
+
+RoundService.PlayerCount = 0
 
 --* GAME STATES
 RoundService.States = {
@@ -44,7 +46,8 @@ function RoundService:_OnIntermission()
         self.Client.ChangeStatus:FireAll("Intermission time: "..tostring(curretTime))
 
         if curretTime < 1 then
-            self.Client.ChangeStatus:FireAll("Intermission over, waiting for players...")
+            self.Client.ChangeStatus:FireAll("Intermission over")
+            task.wait(1)
             self.ChangeState:Fire(self.States.WaitingForPlayers)
         end
     end
@@ -93,6 +96,16 @@ function RoundService:_CleanUpArena()
 end
 
 function RoundService:KnitStart()
+    Players.PlayerAdded:Connect(function()
+        self.PlayerCount += 1
+        self.Client.PlayerCountChanged:FireAll(tostring(self.PlayerCount))
+    end)
+
+    Players.PlayerRemoving:Connect(function()
+        self.PlayerCount -= 1
+        self.Client.PlayerCountChanged:FireAll(tostring(self.PlayerCount))
+    end)
+    
     self.ChangeState:Connect(function(state)
         if state == self.States.Intermission then
             self:_OnIntermission()
