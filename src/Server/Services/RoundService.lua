@@ -11,17 +11,25 @@ local RoundService = Knit.CreateService {
     };
 }
 
+
+--* CONFIG
 RoundService.PlayersToStartRound = 1
 RoundService.RoundTime = 5
 RoundService.IntermissionTime = 5
 RoundService.IsInMatch = false
+
+RoundService.CurrentTime = 0
+
+--* GAME STATES
 RoundService.States = {
     Intermission = "Intermission",
+    BeforeMath = "BeforeMath",
     InMatch = "InMatch",
     AfterMatch = "AfterMatch",
     WaitingForPlayers = "WaitingForPlayers", 
 }
 
+--* BINDABLES
 RoundService.ChangeState = Signal.new()
 
 
@@ -31,7 +39,6 @@ RoundService.ChangeState = Signal.new()
 function RoundService:_OnIntermission()
 
     for curretTime = self.IntermissionTime, 0, -1 do
-        print("IntermissionTime:", curretTime)
         task.wait(1)
 
         self.Client.ChangeStatus:FireAll("Intermission time: "..tostring(curretTime))
@@ -79,11 +86,9 @@ function RoundService:_SpawnKillBricks()
 end
 
 function RoundService:_CleanUpArena()
-    print("cleaning")
     for _, killBrick in ipairs(CollectionService:GetTagged("KillBrick")) do
         killBrick:Destroy()
     end
-
     self.ChangeState:Fire(self.States.Intermission)
 end
 
@@ -91,6 +96,7 @@ function RoundService:KnitStart()
     self.ChangeState:Connect(function(state)
         if state == self.States.Intermission then
             self:_OnIntermission()
+
 
         elseif state == self.States.WaitingForPlayers then
             self:_OnWaitForPlayers()

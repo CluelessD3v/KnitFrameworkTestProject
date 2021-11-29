@@ -3,8 +3,6 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Maid = require(ReplicatedStorage.Packages.maid)
-local Option = require(ReplicatedStorage.Packages.Option)
-
 
 local RoundService 
 
