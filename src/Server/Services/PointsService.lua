@@ -38,33 +38,29 @@ function PointsService:DecreasePoints(player)
     end))
 end
 
-function PointsService:_OnStartRoundSignalInit()
-    RoundService.StartMatchSignal:Connect(function()
+function PointsService:_OnMatchStartedInit()
     
-        local startTime = time()
-        for _, player in ipairs(Players:GetPlayers()) do
-            self:DecreasePoints(player)
-        end
+    local startTime = time()
+    for _, player in ipairs(Players:GetPlayers()) do
+        self:DecreasePoints(player)
+    end
 
 
-        self.Maid:AddTask(RunService.Heartbeat:Connect(function()
-            if time() - startTime > self.RewardInterval then
+    self.Maid:AddTask(RunService.Heartbeat:Connect(function()
+        if time() - startTime > self.RewardInterval then
 
-                for _, player in ipairs(Players:GetPlayers()) do
-                    self:IncreasePoints(player)
-                end
-
-                startTime = time()
+            for _, player in ipairs(Players:GetPlayers()) do
+                self:IncreasePoints(player)
             end
-        end))
-    end)
+
+            startTime = time()
+        end
+    end))
 end
 
 
-function PointsService:_OnCleanUpArenaSignalDeInit()
-    RoundService.StopMatchSignal:Connect(function()
-        self.Maid:Cleanup()
-    end)
+function PointsService:_OnMatchEndedDeInit()
+    self.Maid:Cleanup()
 end
 
 
@@ -75,8 +71,13 @@ function PointsService.Client:ClientGetPoints(playerToLookUp)
 end
 
 function PointsService:KnitStart()
-    self:_OnStartRoundSignalInit()
-    self:_OnCleanUpArenaSignalDeInit()
+    RoundService.ChangeState:Connect(function(state)
+        if state  == RoundService.States.InMatch then
+            self:_OnMatchStartedInit()
+        elseif state == RoundService.States.AfterMatch then
+            self:_OnMatchEndedDeInit()
+        end
+    end)
 end
 
 function PointsService:KnitInit()
