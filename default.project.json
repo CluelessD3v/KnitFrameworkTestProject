@@ -33,6 +33,10 @@
       }
   },
   
+  "StarterGui":{
+    "$className": "StarterGui",
+    "$path": "src/Client/Gui"
+  },
 
     "Workspace": {
       "$properties": {
