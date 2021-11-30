@@ -14,7 +14,7 @@ local RoundService = Knit.CreateService {
 
 
 --* CONFIG
-RoundService.PlayersToStartRound = 2
+RoundService.PlayersToStartRound = 1
 RoundService.RoundTime = 5
 RoundService.IntermissionTime = 5
 RoundService.IsInMatch = false
@@ -60,7 +60,7 @@ function RoundService:_OnWaitForPlayers()
         end
         self.Client.ChangeStatus:FireAll("Starting round!")
 
-        task.wait(3)
+        task.wait(1)
         self.ChangeState:Fire(self.States.InMatch)
 end
 

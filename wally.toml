@@ -7,7 +7,7 @@ realm = "shared"
 [dependencies]
 knit = "sleitnick/knit@1.0.9"
 Comm = "sleitnick/comm@0.1.2"
-Component = "sleitnick/component@1.1.0"
+Component = "sleitnick/component@2.0.0"	
 EnumList = "sleitnick/enum-list@1.0.2"
 Input = "sleitnick/input@1.1.0"
 Loader = "sleitnick/loader@1.0.2"

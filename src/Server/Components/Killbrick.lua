@@ -4,38 +4,31 @@ local Maid = require(ReplicatedStorage.Packages.maid)
 local Option = require(ReplicatedStorage.Packages.Option)
 
 
-local KillBrick = {}
-KillBrick.__index = KillBrick
+local Component = require(game:GetService("ReplicatedStorage").Packages.Component)
 
-KillBrick.Tag = "KillBrick"
+local KillBrick = Component.new({
+  Tag = "KillBrick",
+  Ancestors = {workspace},
+  Extensions = {}
+})
 
-function KillBrick.new(instance)
-    local self = setmetatable({}, KillBrick)
-
+function  KillBrick:Construct()    
     self.Maid = Maid.new()
-    self.Instance = instance
     self.Maid:AddTask(self.Instance)
 
     self.Instance.Size = Vector3.new(4,4,4)
     self.Instance.Material = Enum.Material.Neon
     self.Instance.BrickColor = BrickColor.new("Really red")
     self.Instance.Parent = workspace
-
-    Debris:AddItem(self.Instance, 5)
-    return self
 end
 
 function KillBrick:GetHumanoidFromTouchedPart(touchedPart)
-    local humanoid: Humanoid = touchedPart.Parent:FindFirstChild("Humanoid") 
+  local humanoid: Humanoid = touchedPart.Parent:FindFirstChild("Humanoid") 
 
-    return Option.Wrap(humanoid)
+  return Option.Wrap(humanoid)
 end
 
-function KillBrick:DecreaseHumanoidHealth(humanoid) 
-    humanoid.Health = 0
-end
-
-function KillBrick:ListenForTouches()
+function KillBrick:IfTouchedByHumanoidKillIt()
 	self.Maid:AddTask(self.Instance.Touched:Connect(function(theTouchedPart)
 		local db: boolean = false
 
@@ -44,7 +37,7 @@ function KillBrick:ListenForTouches()
 
 			self:GetHumanoidFromTouchedPart(theTouchedPart):Match{
 				Some = function(humanoid)
-					self:DecreaseHumanoidHealth(humanoid)
+          humanoid.Health = 0          
 				end,
 
 				None = function() end
@@ -56,12 +49,16 @@ function KillBrick:ListenForTouches()
 	end))
 end
 
-function KillBrick:Init()
-    self:ListenForTouches()
+function KillBrick:Start()
+  Debris:AddItem(self.Instance, 5)
+  self:IfTouchedByHumanoidKillIt()
 end
 
-function KillBrick:Destroy()
+function KillBrick:Stop()
+
 end
 
 return KillBrick
+
+
 
