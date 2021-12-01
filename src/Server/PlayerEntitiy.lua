@@ -21,6 +21,7 @@ function PlayerEntitiy:SetData()
 
     local points: NumberValue = Instance.new("NumberValue")
     points.Name = "Points"
+    points.Value = 1000
     points.Parent = data
 
     data.Parent = self.Instance

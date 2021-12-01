@@ -1,4 +1,8 @@
-local Knit = require(game:GetService("ReplicatedStorage").Packages.knit)
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Knit = require(ReplicatedStorage.Packages.knit)
+local PetShopDataTable = require(ReplicatedStorage.PetShopDataTable)
 
 local ShopService = Knit.CreateService {
     Name = "ShopService";
@@ -7,10 +11,13 @@ local ShopService = Knit.CreateService {
     };
 }
 
-
 function ShopService:KnitStart()
-    self.Client.PurchaseAttempt:Connect(function() 
-        print("fired")
+    self.Client.PurchaseAttempt:Connect(function(player, petName)
+        local points = player.Data.Points
+
+        if points.Value >= PetShopDataTable[petName].Price then
+            points.Value -= PetShopDataTable[petName].Price
+        end
     end)
 end
 

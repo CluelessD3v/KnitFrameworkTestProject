@@ -1,7 +1,11 @@
-local Knit = require(game:GetService("ReplicatedStorage").Packages.knit)
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Knit = require(ReplicatedStorage.Packages.knit)
 local ShopService
 
 local ShopController = Knit.CreateController { Name = "ShopController" }
+
+--! it would be interesting to fetch data from a module and construct the pet gui from it.
+
 
 
 function ShopController:KnitStart()
@@ -13,6 +17,9 @@ function ShopController:KnitStart()
 
     local PetsMenu: Frame = ShopGui.ShopFrame.PetsMenuFrame
 
+
+    ShopFrame.Visible = false
+
     ShopButton.MouseButton1Click:Connect(function()
         ShopFrame.Visible = not ShopFrame.Visible
     end)
@@ -21,7 +28,7 @@ function ShopController:KnitStart()
         if frame:IsA("Frame") then
             local textButton = frame:FindFirstChildWhichIsA("GuiButton")
             textButton.MouseButton1Click:Connect(function()
-                ShopService.PurchaseAttempt:Fire()
+                ShopService.PurchaseAttempt:Fire(frame.Name)
             end)
         end
     end
