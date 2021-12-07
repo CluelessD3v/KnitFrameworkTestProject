@@ -40,7 +40,7 @@ Furthermore the Component utility allows for some really interesting data orient
 
 ## Demo
   
-![](Images/Brick%20Fall%20gif.gif)
+![](Images/Brick%20fall%20gif%20compressed.gif)
 <br>
 
 
